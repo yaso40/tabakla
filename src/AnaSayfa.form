@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form xmlns="http://www.intellij.com/uidesigner/form/" version="1" bind-to-class="AnaSayfa">
+  <grid id="27dc6" binding="mainPanel" layout-manager="GridLayoutManager" row-count="3" column-count="6" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+    <margin top="0" left="0" bottom="0" right="0"/>
+    <constraints>
+      <xy x="20" y="20" width="1214" height="808"/>
+    </constraints>
+    <properties/>
+    <border type="none"/>
+    <children>
+      <grid id="7bf78" layout-manager="GridLayoutManager" row-count="2" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+        <margin top="0" left="0" bottom="0" right="0"/>
+        <constraints>
+          <grid row="0" column="0" row-span="2" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties/>
+        <border type="none"/>
+        <children>
+          <grid id="8a4b8" layout-manager="BorderLayout" hgap="0" vgap="0">
+            <constraints>
+              <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties/>
+            <border type="none" title="PROFİL KISMI"/>
+            <children>
+              <component id="1a98b" class="javax.swing.JLabel">
+                <constraints border-constraint="Center"/>
+                <properties>
+                  <text value="AD SOYAD"/>
+                </properties>
+              </component>
+              <component id="84bd3" class="javax.swing.JButton" binding="GÖRSELBURADAOLACAKButton" default-binding="true">
+                <constraints border-constraint="North"/>
+                <properties>
+                  <text value="GÖRSEL BURADA OLACAK"/>
+                </properties>
+              </component>
+            </children>
+          </grid>
+          <grid id="e1d64" layout-manager="BorderLayout" hgap="0" vgap="0">
+            <constraints>
+              <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties/>
+            <border type="none" title="AKTİF SİPARİŞ"/>
+            <children/>
+          </grid>
+        </children>
+      </grid>
+      <grid id="ae0ad" layout-manager="BorderLayout" hgap="0" vgap="0">
+        <constraints>
+          <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties/>
+        <border type="none" title="FAVORİ RESTORANLAR"/>
+        <children/>
+      </grid>
+      <grid id="18f3c" layout-manager="BorderLayout" hgap="0" vgap="0">
+        <constraints>
+          <grid row="0" column="1" row-span="1" col-span="4" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false">
+            <preferred-size width="427" height="25"/>
+          </grid>
+        </constraints>
+        <properties/>
+        <border type="none" title="ARAMA"/>
+        <children>
+          <grid id="ba9da" layout-manager="BorderLayout" hgap="0" vgap="0">
+            <constraints border-constraint="Center"/>
+            <properties/>
+            <border type="none"/>
+            <children>
+              <component id="96998" class="javax.swing.JTextField" binding="textField1" default-binding="true">
+                <constraints border-constraint="North"/>
+                <properties>
+                  <text value=""/>
+                </properties>
+              </component>
+              <grid id="7eadf" layout-manager="BorderLayout" hgap="0" vgap="0">
+                <constraints border-constraint="Center"/>
+                <properties/>
+                <border type="none" title="ARAMA SONUÇLARI"/>
+                <children/>
+              </grid>
+            </children>
+          </grid>
+          <component id="83ba7" class="javax.swing.JButton" binding="ARAButton" default-binding="true">
+            <constraints border-constraint="East"/>
+            <properties>
+              <text value="ARA"/>
+            </properties>
+          </component>
+        </children>
+      </grid>
+      <grid id="f57ad" layout-manager="BorderLayout" hgap="0" vgap="0">
+        <constraints>
+          <grid row="0" column="5" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties/>
+        <border type="none" title="SEPET"/>
+        <children/>
+      </grid>
+      <grid id="e30d7" layout-manager="BorderLayout" hgap="0" vgap="0">
+        <constraints>
+          <grid row="1" column="2" row-span="2" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties/>
+        <border type="none" title="KATEGORİ"/>
+        <children>
+          <component id="ea289" class="javax.swing.JButton" binding="HAMBURGERButton" default-binding="true">
+            <constraints border-constraint="North"/>
+            <properties>
+              <text value="HAMBURGER"/>
+            </properties>
+          </component>
+          <grid id="8ce5d" layout-manager="BorderLayout" hgap="0" vgap="0">
+            <constraints border-constraint="Center"/>
+            <properties/>
+            <border type="none" title="SATICILAR"/>
+            <children/>
+          </grid>
+        </children>
+      </grid>
+      <grid id="5341d" layout-manager="BorderLayout" hgap="0" vgap="0">
+        <constraints>
+          <grid row="1" column="1" row-span="2" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties/>
+        <border type="none" title="KATEGORİ"/>
+        <children>
+          <component id="25c5b" class="javax.swing.JButton" binding="DÖNERButton" default-binding="true">
+            <constraints border-constraint="North"/>
+            <properties>
+              <text value="DÖNER"/>
+            </properties>
+          </component>
+          <grid id="340e5" layout-manager="BorderLayout" hgap="0" vgap="0">
+            <constraints border-constraint="Center"/>
+            <properties/>
+            <border type="none" title="SATICILAR"/>
+            <children/>
+          </grid>
+        </children>
+      </grid>
+      <grid id="fc684" layout-manager="BorderLayout" hgap="0" vgap="0">
+        <constraints>
+          <grid row="1" column="3" row-span="2" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties/>
+        <border type="none" title="KATEGORİ"/>
+        <children>
+          <component id="67f61" class="javax.swing.JButton" binding="TATLIButton" default-binding="true">
+            <constraints border-constraint="North"/>
+            <properties>
+              <text value="TATLI"/>
+            </properties>
+          </component>
+          <grid id="f6052" layout-manager="BorderLayout" hgap="0" vgap="0">
+            <constraints border-constraint="Center"/>
+            <properties/>
+            <border type="none" title="SATICILAR"/>
+            <children/>
+          </grid>
+        </children>
+      </grid>
+      <grid id="97abb" layout-manager="BorderLayout" hgap="0" vgap="0">
+        <constraints>
+          <grid row="1" column="5" row-span="2" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties/>
+        <border type="none" title="ŞİMDİLİK BOŞ"/>
+        <children/>
+      </grid>
+      <grid id="1f6dc" layout-manager="BorderLayout" hgap="0" vgap="0">
+        <constraints>
+          <grid row="1" column="4" row-span="2" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties/>
+        <border type="none" title="KATEGORİ"/>
+        <children>
+          <component id="b0442" class="javax.swing.JButton" binding="PİZZAButton" default-binding="true">
+            <constraints border-constraint="North"/>
+            <properties>
+              <text value="PİZZA"/>
+            </properties>
+          </component>
+          <grid id="5f918" layout-manager="BorderLayout" hgap="0" vgap="0">
+            <constraints border-constraint="Center"/>
+            <properties/>
+            <border type="none" title="SATICILAR"/>
+            <children/>
+          </grid>
+        </children>
+      </grid>
+    </children>
+  </grid>
+</form>
