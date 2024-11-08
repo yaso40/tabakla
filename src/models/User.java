@@ -1,4 +1,3 @@
-// src/models/User.java
 package models;
 
 public class User {
@@ -7,17 +6,28 @@ public class User {
     private String email;
     private String password;
     private String userType;
+    private String restaurantName; // Sadece satıcılar için
+    private String contactInfo;    // Sadece satıcılar için
+    private String address;        // Sadece satıcılar için
 
-    // Parametresiz yapıcı (Boş constructor)
+    // Parametresiz yapıcı
     public User() {}
 
-    // Parametreli yapıcı (constructor)
+    // Genel kullanıcı yapıcı
     public User(int userId, String name, String email, String password, String userType) {
         this.userId = userId;
         this.name = name;
         this.email = email;
         this.password = password;
         this.userType = userType;
+    }
+
+    // Restaurant bilgilerini almak için ek yapıcı
+    public User(int userId, String restaurantName, String contactInfo, String address) {
+        this.userId = userId;
+        this.restaurantName = restaurantName;
+        this.contactInfo = contactInfo;
+        this.address = address;
     }
 
     // Getter ve Setter metodları
@@ -59,5 +69,29 @@ public class User {
 
     public void setUserType(String userType) {
         this.userType = userType;
+    }
+
+    public String getRestaurantName() {
+        return restaurantName;
+    }
+
+    public void setRestaurantName(String restaurantName) {
+        this.restaurantName = restaurantName;
+    }
+
+    public String getContactInfo() {
+        return contactInfo;
+    }
+
+    public void setContactInfo(String contactInfo) {
+        this.contactInfo = contactInfo;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
     }
 }
