@@ -1,54 +1,86 @@
-// src/ui/CartPage.java
 package ui;
 
 import models.Product;
 import models.User;
-
 import javax.swing.*;
 import java.awt.*;
 import java.util.Map;
+import dao.ProductDAO;
 
 public class CartPage extends JPanel {
     private User user;
     private Map<Product, Integer> cartProducts;
     private JPanel productListPanel;
     private JLabel totalPriceLabel;
-    private SellerPage sellerPage; // SellerPage referansı
+    private ProductDAO productDAO;
+    private SellerPage sellerPage;
+    private static final Color BACKGROUND_COLOR = new Color(245, 245, 245);
+    private static final Font TITLE_FONT = new Font("Arial", Font.BOLD, 18);
+    private static final Font ITEM_FONT = new Font("Arial", Font.PLAIN, 14);
 
-    public CartPage(User user, Map<Product, Integer> cartProducts, SellerPage sellerPage) { // SellerPage parametre olarak alındı
+    public CartPage(User user, Map<Product, Integer> cartProducts, SellerPage sellerPage) {
         this.user = user;
         this.cartProducts = cartProducts;
+        this.productDAO = new ProductDAO();
         this.sellerPage = sellerPage;
 
         setLayout(new BorderLayout(10, 10));
-        setBackground(new Color(245, 245, 245));
+        setBackground(BACKGROUND_COLOR);
+        setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
-        JLabel titleLabel = new JLabel("Sepetiniz", SwingConstants.CENTER);
-        titleLabel.setFont(new Font("SansSerif", Font.BOLD, 18));
-        add(titleLabel, BorderLayout.NORTH);
+        // Başlık ve toplam fiyat paneli
+        JPanel headerPanel = createHeaderPanel();
+        add(headerPanel, BorderLayout.NORTH);
 
+        // Ürün listesi
+        createProductListPanel();
+        JScrollPane scrollPane = new JScrollPane(productListPanel);
+        scrollPane.setBorder(null);
+        scrollPane.getVerticalScrollBar().setUnitIncrement(16);
+        add(scrollPane, BorderLayout.CENTER);
+
+        // Alt panel (Butonlar)
+        JPanel bottomPanel = createBottomPanel();
+        add(bottomPanel, BorderLayout.SOUTH);
+
+        refreshCartDisplay();
+    }
+
+    private JPanel createHeaderPanel() {
+        JPanel panel = new JPanel(new BorderLayout(10, 10));
+        panel.setBackground(BACKGROUND_COLOR);
+
+        JLabel titleLabel = new JLabel("Sepetim", SwingConstants.LEFT);
+        titleLabel.setFont(TITLE_FONT);
+        panel.add(titleLabel, BorderLayout.WEST);
+
+        totalPriceLabel = new JLabel("Toplam: 0.00 TL", SwingConstants.RIGHT);
+        totalPriceLabel.setFont(TITLE_FONT);
+        panel.add(totalPriceLabel, BorderLayout.EAST);
+
+        return panel;
+    }
+
+    private void createProductListPanel() {
         productListPanel = new JPanel();
         productListPanel.setLayout(new BoxLayout(productListPanel, BoxLayout.Y_AXIS));
-        productListPanel.setBackground(new Color(245, 245, 245));
-        add(new JScrollPane(productListPanel), BorderLayout.CENTER);
+        productListPanel.setBackground(BACKGROUND_COLOR);
+    }
 
-        // Sepeti boşalt ve sepeti onayla butonları
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        JButton clearCartButton = new JButton("Sepeti Boşalt");
-        clearCartButton.addActionListener(e -> clearCart());
-        JButton confirmCartButton = new JButton("Sepeti Onayla");
-        confirmCartButton.addActionListener(e -> confirmCart());
+    private JPanel createBottomPanel() {
+        JPanel panel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+        panel.setBackground(BACKGROUND_COLOR);
 
-        buttonPanel.add(clearCartButton);
-        buttonPanel.add(confirmCartButton);
-        add(buttonPanel, BorderLayout.SOUTH);
+        JButton clearButton = createStyledButton("Sepeti Boşalt", new Color(244, 67, 54));
+        clearButton.addActionListener(e -> clearCart());
 
-        // Toplam fiyat label
-        totalPriceLabel = new JLabel("Toplam Tutar: 0 TL", SwingConstants.RIGHT);
-        totalPriceLabel.setFont(new Font("SansSerif", Font.BOLD, 14));
-        add(totalPriceLabel, BorderLayout.NORTH);
+        JButton confirmButton = createStyledButton("Sipariş Ver", new Color(76, 175, 80));
+        confirmButton.addActionListener(e -> confirmCart());
 
-        refreshCartDisplay(); // Sepet ürünlerini yükler ve gösterir
+        panel.add(clearButton);
+        panel.add(confirmButton);
+
+        return panel;
     }
 
     private void refreshCartDisplay() {
@@ -58,42 +90,86 @@ public class CartPage extends JPanel {
         for (Map.Entry<Product, Integer> entry : cartProducts.entrySet()) {
             Product product = entry.getKey();
             int quantity = entry.getValue();
-            total += product.getPrice() * quantity; // Toplam fiyat hesaplanıyor
-            productListPanel.add(createCartProductPanel(product, quantity));
+            total += product.getPrice() * quantity;
+
+            JPanel productCard = createProductCard(product, quantity);
+            productListPanel.add(productCard);
+            productListPanel.add(Box.createRigidArea(new Dimension(0, 10)));
         }
 
-        totalPriceLabel.setText("Toplam Tutar: " + String.format("%.2f TL", total));
+        totalPriceLabel.setText(String.format("Toplam: %.2f TL", total));
         productListPanel.revalidate();
         productListPanel.repaint();
     }
 
-    private JPanel createCartProductPanel(Product product, int quantity) {
-        JPanel productPanel = new JPanel(new BorderLayout(10, 10));
-        productPanel.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY));
-        productPanel.setBackground(Color.WHITE);
+    private JPanel createProductCard(Product product, int quantity) {
+        JPanel card = new JPanel(new BorderLayout(10, 0));
+        card.setBackground(Color.WHITE);
+        card.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(200, 200, 200), 1),
+                BorderFactory.createEmptyBorder(10, 10, 10, 10)
+        ));
+        card.setMaximumSize(new Dimension(Integer.MAX_VALUE, 80));
+
+        // Sol taraf - Ürün bilgileri
+        JPanel infoPanel = new JPanel(new GridLayout(2, 1));
+        infoPanel.setBackground(Color.WHITE);
 
         JLabel nameLabel = new JLabel(product.getProductName());
-        JLabel quantityLabel = new JLabel("Adet: " + quantity);
+        nameLabel.setFont(ITEM_FONT);
 
-        JButton decreaseButton = new JButton("-");
+        JLabel priceLabel = new JLabel(String.format("%.2f TL", product.getPrice()));
+        priceLabel.setFont(ITEM_FONT);
+
+        infoPanel.add(nameLabel);
+        infoPanel.add(priceLabel);
+        card.add(infoPanel, BorderLayout.WEST);
+
+        // Sağ taraf - Miktar kontrolleri
+        JPanel controlPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 5, 0));
+        controlPanel.setBackground(Color.WHITE);
+
+        JButton decreaseButton = createQuantityButton("-");
         decreaseButton.addActionListener(e -> updateQuantity(product, -1));
 
-        JButton increaseButton = new JButton("+");
+        JLabel quantityLabel = new JLabel(String.valueOf(quantity), SwingConstants.CENTER);
+        quantityLabel.setPreferredSize(new Dimension(30, 25));
+        quantityLabel.setFont(ITEM_FONT);
+
+        JButton increaseButton = createQuantityButton("+");
         increaseButton.addActionListener(e -> updateQuantity(product, 1));
 
-        JButton deleteButton = new JButton("Sil");
+        JButton deleteButton = createStyledButton("Sil", new Color(244, 67, 54));
         deleteButton.addActionListener(e -> removeProductFromCart(product));
 
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        buttonPanel.add(decreaseButton);
-        buttonPanel.add(quantityLabel);
-        buttonPanel.add(increaseButton);
-        buttonPanel.add(deleteButton);
+        controlPanel.add(decreaseButton);
+        controlPanel.add(quantityLabel);
+        controlPanel.add(increaseButton);
+        controlPanel.add(deleteButton);
 
-        productPanel.add(nameLabel, BorderLayout.WEST);
-        productPanel.add(buttonPanel, BorderLayout.EAST);
+        card.add(controlPanel, BorderLayout.EAST);
 
-        return productPanel;
+        return card;
+    }
+
+    private JButton createQuantityButton(String text) {
+        JButton button = new JButton(text);
+        button.setFont(ITEM_FONT);
+        button.setPreferredSize(new Dimension(25, 25));
+        button.setFocusPainted(false);
+        button.setBackground(new Color(240, 240, 240));
+        button.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY));
+        return button;
+    }
+
+    private JButton createStyledButton(String text, Color bgColor) {
+        JButton button = new JButton(text);
+        button.setFont(ITEM_FONT);
+        button.setForeground(Color.WHITE);
+        button.setBackground(bgColor);
+        button.setFocusPainted(false);
+        button.setBorder(BorderFactory.createEmptyBorder(8, 15, 8, 15));
+        return button;
     }
 
     private void updateQuantity(Product product, int change) {
@@ -102,41 +178,69 @@ public class CartPage extends JPanel {
 
         if (newQuantity > 0) {
             cartProducts.put(product, newQuantity);
+            productDAO.updateCartItemQuantity(user.getUserId(), product.getProductId(), newQuantity);
         } else {
-            cartProducts.remove(product);
+            removeProductFromCart(product);
         }
         refreshCartDisplay();
     }
 
     private void removeProductFromCart(Product product) {
         cartProducts.remove(product);
+        productDAO.updateCartItemQuantity(user.getUserId(), product.getProductId(), 0);
         refreshCartDisplay();
     }
 
     private void clearCart() {
-        cartProducts.clear();
-        refreshCartDisplay();
+        int response = JOptionPane.showConfirmDialog(this,
+                "Sepeti boşaltmak istediğinize emin misiniz?",
+                "Onay",
+                JOptionPane.YES_NO_OPTION);
+
+        if (response == JOptionPane.YES_OPTION) {
+            cartProducts.clear();
+            productDAO.clearCart(user.getUserId());
+            refreshCartDisplay();
+        }
     }
 
     private void confirmCart() {
-        int response = JOptionPane.showConfirmDialog(this, "Sepeti onaylamak istediğinize emin misiniz?", "Onay", JOptionPane.YES_NO_OPTION);
+        if (cartProducts.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Sepetiniz boş!");
+            return;
+        }
+
+        int response = JOptionPane.showConfirmDialog(this,
+                "Siparişinizi onaylamak istiyor musunuz?",
+                "Sipariş Onayı",
+                JOptionPane.YES_NO_OPTION);
+
         if (response == JOptionPane.YES_OPTION) {
-            StringBuilder orderDetails = new StringBuilder("Sipariş Detayları:\n");
+            StringBuilder orderDetails = new StringBuilder();
             for (Map.Entry<Product, Integer> entry : cartProducts.entrySet()) {
                 Product product = entry.getKey();
                 int quantity = entry.getValue();
-                orderDetails.append(product.getProductName()).append(" - Adet: ").append(quantity).append("\n");
-            }
-            // SellerPage'deki sipariş listesine ekleme
-            if (sellerPage != null) {
-                sellerPage.addOrder(orderDetails.toString());
-                JOptionPane.showMessageDialog(this, "Sipariş onaylandı ve satıcıya iletildi.");
-            } else {
-                JOptionPane.showMessageDialog(this, "SellerPage bağlantısı yok.");
+                orderDetails.append(product.getProductName())
+                        .append(" - Adet: ")
+                        .append(quantity)
+                        .append("\n");
+
+                if (sellerPage != null) {
+                    String[] rowData = {
+                            String.valueOf(product.getProductId()),
+                            product.getProductName(),
+                            String.valueOf(quantity),
+                            user.getAddress()
+                    };
+                    sellerPage.addOrderToTable(rowData);
+                }
             }
 
-            // Sepeti temizleme
-            clearCart();
+            if (sellerPage != null) {
+                sellerPage.addOrder(orderDetails.toString());
+                JOptionPane.showMessageDialog(this, "Siparişiniz başarıyla oluşturuldu!");
+                clearCart();
+            }
         }
     }
 }

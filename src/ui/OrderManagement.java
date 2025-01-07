@@ -1,114 +1,210 @@
-// src/ui/OrderManagement.java
 package ui;
 
+import models.Order;
 import models.User;
-import javax.swing.*;
-import java.awt.*;
 import dao.OrderDAO;
+
+import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
+import java.awt.*;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
 public class OrderManagement extends JPanel {
     private User user;
-    private DefaultListModel<String> orderListModel;
-    private JList<String> orderList;
-    private JButton confirmButton, cancelButton;
+    private OrderDAO orderDAO;
+    private JTable orderTable;
+    private DefaultTableModel tableModel;
+    private Timer refreshTimer;
+
+    private static final Color PRIMARY_COLOR = new Color(70, 130, 180);
+    private static final Color SUCCESS_COLOR = new Color(76, 175, 80);
+    private static final Color DANGER_COLOR = new Color(244, 67, 54);
+    private static final Font TITLE_FONT = new Font("Arial", Font.BOLD, 20);
+    private static final Font TABLE_FONT = new Font("Arial", Font.PLAIN, 14);
 
     public OrderManagement(User user) {
         this.user = user;
+        this.orderDAO = new OrderDAO();
+
         setLayout(new BorderLayout(10, 10));
+        setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        setBackground(new Color(245, 245, 245));
 
-        // Başlık
-        JLabel titleLabel = new JLabel("Aktif Siparişler", SwingConstants.CENTER);
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 20));
-        add(titleLabel, BorderLayout.NORTH);
+        createComponents();
+        startAutoRefresh();
+    }
 
-        // Sipariş listesi
-        orderListModel = new DefaultListModel<>();
-        orderList = new JList<>(orderListModel);
-        orderList.setFont(new Font("SansSerif", Font.PLAIN, 14));
-        add(new JScrollPane(orderList), BorderLayout.CENTER);
+    private void createComponents() {
+        // Header Panel
+        JPanel headerPanel = createHeaderPanel();
+        add(headerPanel, BorderLayout.NORTH);
 
-        // Buton Paneli
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
+        // Table Panel
+        JPanel tablePanel = createTablePanel();
+        add(tablePanel, BorderLayout.CENTER);
 
-        confirmButton = new JButton("Onayla");
-        styleButton(confirmButton, new Color(76, 175, 80));
-        confirmButton.addActionListener(e -> confirmOrder());
-
-        cancelButton = new JButton("İptal Et");
-        styleButton(cancelButton, new Color(244, 67, 54));
-        cancelButton.addActionListener(e -> cancelOrder());
-
-        buttonPanel.add(confirmButton);
-        buttonPanel.add(cancelButton);
+        // Button Panel
+        JPanel buttonPanel = createButtonPanel();
         add(buttonPanel, BorderLayout.SOUTH);
+    }
 
-        // Siparişleri ilk yükleme ve her 10 saniyede bir güncelleme
-        loadOrders();
-        Timer timer = new Timer();
-        timer.schedule(new TimerTask() {
+    private JPanel createHeaderPanel() {
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setBackground(new Color(245, 245, 245));
+
+        JLabel titleLabel = new JLabel("Aktif Siparişler", SwingConstants.CENTER);
+        titleLabel.setFont(TITLE_FONT);
+        titleLabel.setForeground(PRIMARY_COLOR);
+        panel.add(titleLabel, BorderLayout.CENTER);
+
+        return panel;
+    }
+
+    private JPanel createTablePanel() {
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setBackground(Color.WHITE);
+        panel.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
+
+        // Table Model
+        String[] columns = {"Sipariş ID", "Ürün", "Miktar", "Toplam Fiyat", "Tarih", "Durum"};
+        tableModel = new DefaultTableModel(columns, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
+
+        // Table
+        orderTable = new JTable(tableModel);
+        orderTable.setFont(TABLE_FONT);
+        orderTable.setRowHeight(30);
+        orderTable.getTableHeader().setFont(new Font("Arial", Font.BOLD, 14));
+        orderTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        orderTable.setShowGrid(true);
+        orderTable.setGridColor(new Color(230, 230, 230));
+
+        // Scroll Pane
+        JScrollPane scrollPane = new JScrollPane(orderTable);
+        scrollPane.setBorder(BorderFactory.createEmptyBorder());
+        panel.add(scrollPane, BorderLayout.CENTER);
+
+        return panel;
+    }
+
+    private JPanel createButtonPanel() {
+        JPanel panel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+        panel.setBackground(new Color(245, 245, 245));
+
+        JButton confirmButton = createStyledButton("Siparişi Tamamla", SUCCESS_COLOR);
+        confirmButton.addActionListener(e -> confirmSelectedOrder());
+
+        JButton cancelButton = createStyledButton("Siparişi İptal Et", DANGER_COLOR);
+        cancelButton.addActionListener(e -> cancelSelectedOrder());
+
+        panel.add(confirmButton);
+        panel.add(cancelButton);
+
+        return panel;
+    }
+
+    private JButton createStyledButton(String text, Color bgColor) {
+        JButton button = new JButton(text);
+        button.setFont(new Font("Arial", Font.BOLD, 14));
+        button.setForeground(Color.WHITE);
+        button.setBackground(bgColor);
+        button.setFocusPainted(false);
+        button.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
+        button.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        return button;
+    }
+
+    private void loadOrders() {
+        tableModel.setRowCount(0);
+
+        // Doğru metodu çağırıyoruz:
+        List<Order> orders = orderDAO.getPendingOrdersForSeller(user.getUserId());
+
+        for (Order order : orders) {
+            Object[] row = {
+                    order.getOrderId(),
+                    order.getProductName(),
+                    order.getQuantity(),
+                    String.format("%.2f TL", order.getTotalPrice()),
+                    order.getOrderDate(),
+                    order.getStatus()
+            };
+            tableModel.addRow(row);
+        }
+    }
+
+
+    private void confirmSelectedOrder() {
+        int selectedRow = orderTable.getSelectedRow();
+        if (selectedRow == -1) {
+            showMessage("Lütfen bir sipariş seçin.", "Uyarı", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        int orderId = (int) tableModel.getValueAt(selectedRow, 0);
+        int response = JOptionPane.showConfirmDialog(this,
+                "Seçili siparişi tamamlamak istediğinize emin misiniz?",
+                "Onay",
+                JOptionPane.YES_NO_OPTION);
+
+        if (response == JOptionPane.YES_OPTION) {
+            if (orderDAO.markOrderAsDelivered(orderId)) {
+                showMessage("Sipariş başarıyla tamamlandı.", "Başarılı", JOptionPane.INFORMATION_MESSAGE);
+                loadOrders();
+            } else {
+                showMessage("Sipariş tamamlanırken bir hata oluştu.", "Hata", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
+
+    private void cancelSelectedOrder() {
+        int selectedRow = orderTable.getSelectedRow();
+        if (selectedRow == -1) {
+            showMessage("Lütfen bir sipariş seçin.", "Uyarı", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        int orderId = (int) tableModel.getValueAt(selectedRow, 0);
+        int response = JOptionPane.showConfirmDialog(this,
+                "Seçili siparişi iptal etmek istediğinize emin misiniz?",
+                "Onay",
+                JOptionPane.YES_NO_OPTION);
+
+        if (response == JOptionPane.YES_OPTION) {
+            if (orderDAO.cancelOrder(orderId)) {
+                showMessage("Sipariş başarıyla iptal edildi.", "Başarılı", JOptionPane.INFORMATION_MESSAGE);
+                loadOrders();
+            } else {
+                showMessage("Sipariş iptal edilirken bir hata oluştu.", "Hata", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
+
+    private void startAutoRefresh() {
+        refreshTimer = new Timer();
+        refreshTimer.schedule(new TimerTask() {
             @Override
             public void run() {
-                loadOrders();
+                SwingUtilities.invokeLater(() -> loadOrders());
             }
-        }, 0, 10000); // 10 saniyede bir güncelle
+        }, 0, 30000); // Her 30 saniyede bir güncelle
     }
 
-    // Siparişleri veritabanından yükleyen metot
-    private void loadOrders() {
-        OrderDAO orderDAO = new OrderDAO();
-        String[] orders = orderDAO.getActiveOrders(user.getUserId());
-        orderListModel.clear();
-        for (String order : orders) {
-            orderListModel.addElement(order);
+    private void showMessage(String message, String title, int messageType) {
+        JOptionPane.showMessageDialog(this, message, title, messageType);
+    }
+
+    @Override
+    public void removeNotify() {
+        super.removeNotify();
+        if (refreshTimer != null) {
+            refreshTimer.cancel();
         }
-    }
-
-    // Siparişi onaylayan metot
-    private void confirmOrder() {
-        String selectedOrder = orderList.getSelectedValue();
-        if (selectedOrder != null) {
-            // Onaylama işlemleri
-            JOptionPane.showMessageDialog(this, "Sipariş onaylandı.");
-            orderListModel.removeElement(selectedOrder);
-        } else {
-            JOptionPane.showMessageDialog(this, "Lütfen onaylamak için bir sipariş seçin.");
-        }
-    }
-
-    // Siparişi iptal eden metot
-    private void cancelOrder() {
-        String selectedOrder = orderList.getSelectedValue();
-        if (selectedOrder != null) {
-            // Burada order_id'yi ayrıştırmanız gerekebilir
-            int orderId = getOrderIdFromSelection(selectedOrder);
-            OrderDAO orderDAO = new OrderDAO();
-            if (orderDAO.cancelOrder(orderId)) {
-                JOptionPane.showMessageDialog(this, "Sipariş iptal edildi.");
-                orderListModel.removeElement(selectedOrder);
-            } else {
-                JOptionPane.showMessageDialog(this, "Sipariş iptal edilemedi.");
-            }
-        } else {
-            JOptionPane.showMessageDialog(this, "Lütfen iptal etmek için bir sipariş seçin.");
-        }
-    }
-
-    // Seçilen sipariş metninden order_id'yi çıkarmak için yardımcı metot
-    private int getOrderIdFromSelection(String orderText) {
-        // Örnek: "Sipariş 123 - Burger" gibi bir metinden "123" alır
-        String orderIdStr = orderText.split(" ")[1];
-        return Integer.parseInt(orderIdStr);
-    }
-
-    // Butonlara stil uygulayan yardımcı metot
-    private void styleButton(JButton button, Color bgColor) {
-        button.setFocusPainted(false);
-        button.setBackground(bgColor);
-        button.setForeground(Color.WHITE);
-        button.setFont(new Font("SansSerif", Font.BOLD, 14));
-        button.setPreferredSize(new Dimension(100, 40));
-        button.setBorder(BorderFactory.createEmptyBorder(5, 15, 5, 15));
     }
 }

@@ -7,159 +7,248 @@ import dao.UserDAO;
 
 public class SellerProfileForm extends JFrame {
     private User user;
-    private JTextField nameField, emailField, restaurantNameField, contactInfoField, addressField;
-    private JButton editButton, saveButton, cancelButton;
+    private UserDAO userDAO;
+    private JTextField nameField;
+    private JTextField emailField;
+    private JTextField restaurantNameField;
+    private JTextField contactInfoField;
+    private JTextField addressField;
     private boolean isEditing = false;
+
+    // UI Constants
+    private static final Color PRIMARY_COLOR = new Color(70, 130, 180);
+    private static final Color SUCCESS_COLOR = new Color(76, 175, 80);
+    private static final Color BACKGROUND_COLOR = new Color(245, 245, 245);
+    private static final Font TITLE_FONT = new Font("Arial", Font.BOLD, 24);
+    private static final Font LABEL_FONT = new Font("Arial", Font.BOLD, 14);
+    private static final Font FIELD_FONT = new Font("Arial", Font.PLAIN, 14);
 
     public SellerProfileForm(User user) {
         this.user = user;
-        setTitle("Satıcı Profili");
-        setSize(400, 500);
-        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        setLocationRelativeTo(null);
-        setLayout(new BorderLayout(10, 10));
+        this.userDAO = new UserDAO();
 
-        // Başlık
-        JPanel headerPanel = new JPanel();
-        headerPanel.setBackground(new Color(70, 130, 180));
-        JLabel titleLabel = new JLabel("Satıcı Profil Bilgileri");
-        titleLabel.setForeground(Color.WHITE);
-        titleLabel.setFont(new Font("SansSerif", Font.BOLD, 20));
-        headerPanel.add(titleLabel);
-        add(headerPanel, BorderLayout.NORTH);
-
-        // İçerik Paneli
-        JPanel contentPanel = new JPanel(new GridBagLayout());
-        contentPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(10, 10, 10, 10);
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-
-        // Ad Alanı
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        contentPanel.add(new JLabel("Ad:"), gbc);
-
-        gbc.gridx = 1;
-        nameField = new JTextField(user.getName(), 20);
-        nameField.setEditable(false);
-        contentPanel.add(nameField, gbc);
-
-        // Email Alanı
-        gbc.gridx = 0;
-        gbc.gridy = 1;
-        contentPanel.add(new JLabel("Email:"), gbc);
-
-        gbc.gridx = 1;
-        emailField = new JTextField(user.getEmail(), 20);
-        emailField.setEditable(false);
-        contentPanel.add(emailField, gbc);
-
-        // Restaurant Adı Alanı
-        gbc.gridx = 0;
-        gbc.gridy = 2;
-        contentPanel.add(new JLabel("Restaurant Adı:"), gbc);
-
-        gbc.gridx = 1;
-        restaurantNameField = new JTextField(user.getRestaurantName(), 20);
-        restaurantNameField.setEditable(false);
-        contentPanel.add(restaurantNameField, gbc);
-
-        // İletişim Bilgisi Alanı
-        gbc.gridx = 0;
-        gbc.gridy = 3;
-        contentPanel.add(new JLabel("İletişim Bilgisi:"), gbc);
-
-        gbc.gridx = 1;
-        contactInfoField = new JTextField(user.getContactInfo(), 20);
-        contactInfoField.setEditable(false);
-        contentPanel.add(contactInfoField, gbc);
-
-        // Adres Alanı
-        gbc.gridx = 0;
-        gbc.gridy = 4;
-        contentPanel.add(new JLabel("Adres:"), gbc);
-
-        gbc.gridx = 1;
-        addressField = new JTextField(user.getAddress(), 20);
-        addressField.setEditable(false);
-        contentPanel.add(addressField, gbc);
-
-        add(contentPanel, BorderLayout.CENTER);
-
-        // Buton Paneli
-        JPanel buttonPanel = new JPanel(new FlowLayout());
-        editButton = createStyledButton("Düzenle", new Color(255, 193, 7));
-        editButton.addActionListener(e -> toggleEditMode());
-        buttonPanel.add(editButton);
-
-        saveButton = createStyledButton("Kaydet", new Color(76, 175, 80));
-        saveButton.setEnabled(false);
-        saveButton.addActionListener(e -> saveProfile());
-        buttonPanel.add(saveButton);
-
-        cancelButton = createStyledButton("İptal", new Color(244, 67, 54));
-        cancelButton.setEnabled(false);
-        cancelButton.addActionListener(e -> cancelEdit());
-        buttonPanel.add(cancelButton);
-
-        add(buttonPanel, BorderLayout.SOUTH);
+        setupFrame();
+        createComponents();
     }
 
-    // Buton stilini ayarlayan yardımcı metot
-    private JButton createStyledButton(String text, Color color) {
+    private void setupFrame() {
+        setTitle("Satıcı Profili");
+        setSize(600, 700);
+        setLocationRelativeTo(null);
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        getContentPane().setBackground(BACKGROUND_COLOR);
+    }
+
+    private void createComponents() {
+        setLayout(new BorderLayout(20, 20));
+        ((JPanel)getContentPane()).setBorder(BorderFactory.createEmptyBorder(30, 40, 30, 40));
+
+        // Header
+        add(createHeaderPanel(), BorderLayout.NORTH);
+
+        // Form
+        add(createFormPanel(), BorderLayout.CENTER);
+
+        // Buttons
+        add(createButtonPanel(), BorderLayout.SOUTH);
+    }
+
+    private JPanel createHeaderPanel() {
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setBackground(BACKGROUND_COLOR);
+        panel.setBorder(BorderFactory.createEmptyBorder(0, 0, 20, 0));
+
+        JLabel titleLabel = new JLabel("Profil Bilgileri");
+        titleLabel.setFont(TITLE_FONT);
+        titleLabel.setForeground(PRIMARY_COLOR);
+        panel.add(titleLabel, BorderLayout.CENTER);
+
+        return panel;
+    }
+
+    private JPanel createFormPanel() {
+        JPanel panel = new JPanel(new GridBagLayout());
+        panel.setBackground(BACKGROUND_COLOR);
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.insets = new Insets(10, 0, 10, 0);
+        gbc.gridwidth = 1;
+        gbc.weightx = 1.0;
+
+        // Ad
+        gbc.gridy = 0;
+        panel.add(createLabel("Ad:"), gbc);
+
+        gbc.gridy = 1;
+        nameField = createTextField(user.getName());
+        panel.add(nameField, gbc);
+
+        // Email
+        gbc.gridy = 2;
+        panel.add(createLabel("Email:"), gbc);
+
+        gbc.gridy = 3;
+        emailField = createTextField(user.getEmail());
+        panel.add(emailField, gbc);
+
+        // Restaurant Adı
+        gbc.gridy = 4;
+        panel.add(createLabel("Restaurant Adı:"), gbc);
+
+        gbc.gridy = 5;
+        restaurantNameField = createTextField(user.getRestaurantName());
+        panel.add(restaurantNameField, gbc);
+
+        // İletişim Bilgisi
+        gbc.gridy = 6;
+        panel.add(createLabel("İletişim Bilgisi:"), gbc);
+
+        gbc.gridy = 7;
+        contactInfoField = createTextField(user.getContactInfo());
+        panel.add(contactInfoField, gbc);
+
+        // Adres
+        gbc.gridy = 8;
+        panel.add(createLabel("Adres:"), gbc);
+
+        gbc.gridy = 9;
+        addressField = createTextField(user.getAddress());
+        panel.add(addressField, gbc);
+
+        return panel;
+    }
+
+    private JPanel createButtonPanel() {
+        JPanel panel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+        panel.setBackground(BACKGROUND_COLOR);
+
+        JButton editButton = createStyledButton("Düzenle", PRIMARY_COLOR);
+        editButton.addActionListener(e -> toggleEditMode());
+
+        JButton saveButton = createStyledButton("Kaydet", SUCCESS_COLOR);
+        saveButton.addActionListener(e -> saveProfile());
+        saveButton.setVisible(false);
+
+        panel.add(editButton);
+        panel.add(saveButton);
+
+        return panel;
+    }
+
+    private JLabel createLabel(String text) {
+        JLabel label = new JLabel(text);
+        label.setFont(LABEL_FONT);
+        return label;
+    }
+
+    private JTextField createTextField(String text) {
+        JTextField field = new JTextField(text);
+        field.setFont(FIELD_FONT);
+        field.setEditable(false);
+        field.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(200, 200, 200)),
+                BorderFactory.createEmptyBorder(8, 10, 8, 10)
+        ));
+        return field;
+    }
+
+    private JButton createStyledButton(String text, Color bgColor) {
         JButton button = new JButton(text);
-        button.setFocusPainted(false);
-        button.setBackground(color);
+        button.setFont(new Font("Arial", Font.BOLD, 14));
         button.setForeground(Color.WHITE);
-        button.setFont(new Font("SansSerif", Font.BOLD, 14));
-        button.setPreferredSize(new Dimension(100, 40));
+        button.setBackground(bgColor);
+        button.setFocusPainted(false);
+        button.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
+        button.setCursor(new Cursor(Cursor.HAND_CURSOR));
         return button;
     }
 
-    // Düzenleme Modunu Aç/Kapat
     private void toggleEditMode() {
         isEditing = !isEditing;
+
         nameField.setEditable(isEditing);
         emailField.setEditable(isEditing);
         restaurantNameField.setEditable(isEditing);
         contactInfoField.setEditable(isEditing);
         addressField.setEditable(isEditing);
 
-        editButton.setEnabled(!isEditing);
-        saveButton.setEnabled(isEditing);
-        cancelButton.setEnabled(isEditing);
-    }
+        // Update field borders based on edit mode
+        Color borderColor = isEditing ? PRIMARY_COLOR : new Color(200, 200, 200);
+        updateFieldBorders(borderColor);
 
-    // Profili Kaydetme
-    private void saveProfile() {
-        user.setName(nameField.getText());
-        user.setEmail(emailField.getText());
-        user.setRestaurantName(restaurantNameField.getText());
-        user.setContactInfo(contactInfoField.getText());
-        user.setAddress(addressField.getText());
-
-        UserDAO userDAO = new UserDAO();
-        if (userDAO.updateUser(user)) {  // updateUser metodu UserDAO'da tanımlı olmalı
-            JOptionPane.showMessageDialog(this, "Profil başarıyla güncellendi.");
-            toggleEditMode();
-        } else {
-            JOptionPane.showMessageDialog(this, "Profil güncellenirken bir hata oluştu.");
+        // Toggle button visibility
+        for (Component comp : getContentPane().getComponents()) {
+            if (comp instanceof JPanel) {
+                for (Component button : ((JPanel) comp).getComponents()) {
+                    if (button instanceof JButton) {
+                        JButton btn = (JButton) button;
+                        if (btn.getText().equals("Düzenle")) {
+                            btn.setVisible(!isEditing);
+                        } else if (btn.getText().equals("Kaydet")) {
+                            btn.setVisible(isEditing);
+                        }
+                    }
+                }
+            }
         }
     }
 
-    // Düzenleme İşleminden Vazgeçme
-    private void cancelEdit() {
-        nameField.setText(user.getName());
-        emailField.setText(user.getEmail());
-        restaurantNameField.setText(user.getRestaurantName());
-        contactInfoField.setText(user.getContactInfo());
-        addressField.setText(user.getAddress());
-
-        toggleEditMode();
+    private void updateFieldBorders(Color color) {
+        JTextField[] fields = {nameField, emailField, restaurantNameField, contactInfoField, addressField};
+        for (JTextField field : fields) {
+            field.setBorder(BorderFactory.createCompoundBorder(
+                    BorderFactory.createLineBorder(color),
+                    BorderFactory.createEmptyBorder(8, 10, 8, 10)
+            ));
+        }
     }
 
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> new SellerProfileForm(new User()).setVisible(true));
+    private void saveProfile() {
+        String newName = nameField.getText().trim();
+        String newEmail = emailField.getText().trim();
+        String newRestaurantName = restaurantNameField.getText().trim();
+        String newContactInfo = contactInfoField.getText().trim();
+        String newAddress = addressField.getText().trim();
+
+        // Validation
+        if (newName.isEmpty() || newEmail.isEmpty() || newRestaurantName.isEmpty() ||
+                newContactInfo.isEmpty() || newAddress.isEmpty()) {
+            showError("Lütfen tüm alanları doldurun.");
+            return;
+        }
+
+        if (!isValidEmail(newEmail)) {
+            showError("Geçerli bir email adresi girin.");
+            return;
+        }
+
+        // Update user object
+        user.setName(newName);
+        user.setEmail(newEmail);
+        user.setRestaurantName(newRestaurantName);
+        user.setContactInfo(newContactInfo);
+        user.setAddress(newAddress);
+
+        // Save to database
+        if (userDAO.updateUser(user)) {
+            JOptionPane.showMessageDialog(this,
+                    "Profil bilgileriniz başarıyla güncellendi.",
+                    "Başarılı",
+                    JOptionPane.INFORMATION_MESSAGE);
+            toggleEditMode();
+        } else {
+            showError("Profil güncellenirken bir hata oluştu.");
+        }
+    }
+
+    private boolean isValidEmail(String email) {
+        return email.matches("^[A-Za-z0-9+_.-]+@(.+)$");
+    }
+
+    private void showError(String message) {
+        JOptionPane.showMessageDialog(this,
+                message,
+                "Hata",
+                JOptionPane.ERROR_MESSAGE);
     }
 }
